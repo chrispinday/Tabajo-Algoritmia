@@ -69,11 +69,12 @@ int main() {
     printf("Datos normalizados correctamente.\n");
 
 
-    // --- MENÚ PRINCIPAL ---
+    //MENU PRINCIPAL
     do {
         printf("\n------- MENU K-NN (K=1) -------- \n");
         printf("1 - Introducir un dia nuevo y clasificarlo (K=1)\n");
-        printf("2 - Salir\n");
+        printf("2 - Comparar todos con todos, k=1 // Limite 1000\n");
+        printf("3 - Salir\n");
         printf("Escoja una opcion: ");
         scanf("%d", &opcion);
 
@@ -114,8 +115,79 @@ int main() {
                 printf(">> INCORRECTO\n");
             }
         }
+        else if (opcion == 2) {
+            int LIMITE_PRUEBA = 1000; //Limite 1000
+            printf("\nComparar todos con todos, k=1 // Calculando Matriz de Confusión\n");
 
-    } while (opcion != 2);
+            int TP = 0;
+            int TN = 0;
+            int FP = 0;
+            int FN = 0;
+
+            int aciertos = 0;
+            int totalEvaluados = 0;
+            celdaListaDeDias *actual = listaDeDias.ini;
+
+            int idx;
+            float dist;
+            bool pred;
+
+            while(actual != NULL && totalEvaluados < LIMITE_PRUEBA) {
+                ejecutarK1(&listaDeDias, actual->elem, actual, &idx, &dist, &pred);
+
+                if (pred == actual->elem.rainTomorrow) {
+                    aciertos++;
+                }
+
+                bool real = actual->elem.rainTomorrow;
+
+                if (real == 1 && pred == 1) {
+                    TP++; // Llovio y acertamos
+                }
+                else if (real == 0 && pred == 0) {
+                    TN++; // No llovio y acertamos
+                }
+                else if (real == 0 && pred == 1) {
+                    FP++; // Dijimos que llovia, pero no
+                }
+                else if (real == 1 && pred == 0) {
+                    FN++; // Dijimos que no llovia, pero llovio
+                }
+
+                totalEvaluados++;
+                actual = actual->sig; // Pasamos al siguiente dia
+
+
+            }
+
+            float accuracy = (float)(TP + TN) / totalEvaluados;
+            float sensibilidad = (float)TP / (TP + FN);
+            float especificidad = (float)TN / (TN + FP);
+            float precision = (float)TP / (TP + FP);
+
+            // --- IMPRESIÓN DE RESULTADOS ---
+            printf("\n\n");
+            printf("=========================================\n");
+            printf("          MATRIZ DE CONFUSIÓN            \n");
+            printf("=========================================\n");
+            printf("                 | Pred: YES | Pred: NO |\n");
+            printf("-----------------|-----------|----------|\n");
+            printf(" Real: YES (1)   |   %4d    |   %4d   |\n", TP, FN);
+            printf(" Real: NO  (0)   |   %4d    |   %4d   |\n", FP, TN);
+            printf("=========================================\n\n");
+
+            printf("--- MÉTRICAS DETALLADAS ---\n");
+            printf("1. Accuracy (Exactitud):   %.2f%%\n", accuracy * 100.0);
+            printf("2. Sensibilidad (Recall):  %.2f%%\n", sensibilidad * 100.0);
+            printf("3. Especificidad:          %.2f%%\n", especificidad * 100.0);
+            printf("4. Precision:              %.2f%%\n", precision * 100.0);
+            printf("-----------------------------------------\n");
+            printf("Total Evaluados: %d\n", totalEvaluados);
+
+        }
+
+
+    } while (opcion != 3);
 
 
     free(stringDia);
