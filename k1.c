@@ -72,6 +72,44 @@ void ejecutarKN(tipoListaDinamicaDeDias *lista, tipoDia diaObjetivo, celdaListaD
     vaciarLista(&kLista);
 }
 
+void compararDiaConDataset(celdaListaDeDias *celdaAComparar, tipoListaDinamicaDeDias *listaDeDias,tipoListaKDIstancias *listaDeDistancias, int *predAcertadas){
+    celdaListaDeDias* celdaRecorrido = listaDeDias->ini;
+    tipoElementoLista distanciaDeCelda;
+
+    for(int x = 0; celdaRecorrido != NULL; x++){
+        if(celdaAComparar != celdaRecorrido){
+            distanciaDeCelda.distancia = calcularDistancia(celdaAComparar->elem, celdaRecorrido->elem);
+            distanciaDeCelda.indice = x;
+            distanciaDeCelda.clase = celdaRecorrido->elem.rainTomorrow;
+            insertar(listaDeDistancias, distanciaDeCelda);
+        }
+
+        celdaRecorrido = celdaRecorrido->sig;
+    }
+    if(devuelvePrediccion(*listaDeDistancias) == celdaAComparar->elem.rainTomorrow)
+        (*predAcertadas)++;
+}
+
+int algoritmoWilson(tipoListaDinamicaDeDias listaDeDias, tipoListaDinamicaDeDias *listaDeWilson, int k){
+    celdaListaDeDias *celdaAComparar;
+    int i, predAcertadas;
+    predAcertadas = 0;
+    tipoListaKDIstancias listaDeDistancias;
+    celdaAComparar = listaDeDias.ini;
+    nuevaLista(&listaDeDistancias, k);
+    for(i = 0; celdaAComparar != NULL; i++){
+        compararDiaConDataset(celdaAComparar, &listaDeDias, &listaDeDistancias, &predAcertadas);
+        
+        if(devuelvePrediccion(listaDeDistancias) == celdaAComparar->elem.rainTomorrow) {
+            insertarListaDinamicaDeDias(listaDeWilson,celdaAComparar->elem);
+        }
+        celdaAComparar = celdaAComparar->sig;
+        vaciarLista(&listaDeDistancias);
+    }
+    return predAcertadas;
+}
+
+
 int main() {
     tipoListaDinamicaDeDias listaDeDias;
     FILE *dataset;
@@ -120,7 +158,8 @@ int main() {
         printf("2 - Comparar todos con todos K = 1 // Limite 1000\n");
         printf("3 - Introducir un dia nuevo y clasificarlo (K=N)\n");
         printf("4 - Comparar todos con todos K = N // Limite 1000\n");
-        printf("5 - Salir\n");
+        printf("5 - Aplicar algoritmo de wilson\n");
+        printf("6 - Salir\n");
         printf("Escoja una opcion: ");
         scanf("%d", &opcion);
 
@@ -320,8 +359,17 @@ int main() {
 
         }
 
-
-    } while (opcion != 5);
+		else if (opcion == 5) {
+			int k;
+			tipoListaDinamicaDeDias listaDeWilson;
+			
+            printf("Introduzca el valor de K: ");
+            scanf("%d", &k);
+            
+			int casoGuardadosWilson = algoritmoWilson(listaDeDias, &listaDeWilson, k);
+            printf("De %d dias hemos pasado a %d dias de entrenamiento \n", numeroDeDias, casoGuardadosWilson);
+		}
+    } while (opcion != 6);
 
 
     free(stringDia);
